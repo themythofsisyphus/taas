@@ -1,13 +1,16 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"taas/db"
 	"taas/handlers"
+	"taas/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
+	r.Use(middleware.AuthMiddleware())
 
 	handlers.RegisterTagRoutes(r, db.Connect())
 

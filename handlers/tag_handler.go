@@ -5,10 +5,11 @@ import (
 	"taas/repository"
 	"taas/services"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"strconv"
 	"taas/models"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func RegisterTagRoutes(route *gin.Engine, db *gorm.DB) {
