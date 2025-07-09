@@ -1,8 +1,7 @@
 package dto
 
 type TagRequest struct {
-	Name     string `json:"name" binding:"required"`
-	TenantID uint   `json:"tenant_id" binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
 
 type TagResponse struct {

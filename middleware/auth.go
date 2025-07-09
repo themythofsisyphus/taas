@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +16,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		// }
 
 		// Set tenant_id in Gin context
-		c.Set("tenant_id", uint(1))
+		tenantID := uint(1)
+		c.Set("tenant_id", tenantID)
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "tenant_id", tenantID))
 		c.Next()
 	}
 }
