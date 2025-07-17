@@ -13,3 +13,7 @@ type TagMapping struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
+
+type TagMappingRequest struct {
+	TagIDs []uint `json:"tag_ids"`
+}

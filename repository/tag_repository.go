@@ -21,10 +21,16 @@ func (r *TagRepository) GetAll(ctx context.Context) ([]model.Tag, error) {
 	return tags, err
 }
 
-func (r *TagRepository) GetByID(ctx context.Context, id uint) (model.Tag, error) {
+func (r *TagRepository) GetByID(ctx context.Context, id uint) (*model.Tag, error) {
 	var tag model.Tag
 	err := r.db.WithContext(ctx).First(&tag, id).Error
-	return tag, err
+	return &tag, err
+}
+
+func (r *TagRepository) GetByIDs(ctx context.Context, ids []uint) ([]model.Tag, error) {
+	var tags []model.Tag
+	err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&tags).Error
+	return tags, err
 }
 
 func (r *TagRepository) Create(ctx context.Context, tag *model.Tag) (*model.Tag, error) {
@@ -32,9 +38,9 @@ func (r *TagRepository) Create(ctx context.Context, tag *model.Tag) (*model.Tag,
 	return tag, err
 }
 
-func (r *TagRepository) Update(ctx context.Context, tag *model.Tag) (*model.Tag, error) {
+func (r *TagRepository) Update(ctx context.Context, tag *model.Tag) error {
 	err := r.db.WithContext(ctx).Save(tag).Error
-	return tag, err
+	return err
 }
 
 func (r *TagRepository) Delete(ctx context.Context, id uint) error {

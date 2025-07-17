@@ -1,7 +1,9 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"taas/config"
 	"taas/model"
 
 	"gorm.io/driver/postgres"
@@ -9,8 +11,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func Connect() *gorm.DB {
-	dsn := "host=localhost user=taasuser password=taasuser dbname=taas port=5432 sslmode=disable"
+func InitDB(config *config.DatabaseConfig) *gorm.DB {
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
+		config.Host, config.UserName, config.Password, config.Name, config.Port, config.SSLMode)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to DB:", err)
