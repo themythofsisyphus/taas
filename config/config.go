@@ -51,7 +51,7 @@ func LoadConfig() (*Config, error) {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
 			UserName: getEnv("DB_USER", "taasuser"),
-			Password: getEnv("DB_PASSWORD", ""),
+			Password: getEnv("DB_PASSWORD", "taasuser"),
 			Name:     getEnv("DB_NAME", "taas"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},

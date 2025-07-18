@@ -46,12 +46,14 @@ func (h *TagMappingHandler) CreateTagMappings(context *gin.Context) {
 func (h *TagMappingHandler) ListTagMappings(context *gin.Context) {
 	entityType := context.Param("entity_type")
 	entityID, err := strconv.ParseUint(context.Param("id"), 10, 0)
+	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param", err.Error())
 	}
 
-	tags, err := h.tagMappingService.GetTagMappings(context, entityType, uint(entityID))
+	tags, err := h.tagMappingService.GetTagMappingsWithPagination(context, entityType, uint(entityID), utils.NewPagination(page, limit))
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive", nil)

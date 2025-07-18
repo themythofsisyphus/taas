@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"taas/model"
+	"taas/utils"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +19,14 @@ func NewTagMappingRepo(db *gorm.DB) *TagMappingRepo {
 func (r *TagMappingRepo) GetTagMappings(ctx context.Context, entityType int, entityID uint) ([]model.TagMapping, error) {
 	var tagMappings []model.TagMapping
 	err := r.db.WithContext(ctx).Where("entity_type = ? AND entity_id = ?", entityType, entityID).Find(&tagMappings).Error
+	return tagMappings, err
+}
+
+func (r *TagMappingRepo) GetWithPagination(ctx context.Context,
+	entityType int, entityID uint, pagination *utils.Pagination) ([]model.TagMapping, error) {
+	var tagMappings []model.TagMapping
+	err := r.db.WithContext(ctx).Scopes(pagination.DBscope(r.db)).
+		Where("entity_type = ? AND entity_id = ?", entityType, entityID).Order("created_at ASC").Find(&tagMappings).Error
 	return tagMappings, err
 }
 

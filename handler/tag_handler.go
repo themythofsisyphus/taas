@@ -22,7 +22,10 @@ func NewTagHandler(service *service.TagService) *TagHandler {
 }
 
 func (h *TagHandler) ListTags(context *gin.Context) {
-	tags, err := h.tagService.GetAllTags(context)
+	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
+
+	tags, err := h.tagService.GetTagsWithPagination(context, utils.NewPagination(page, limit))
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Failed to retrive tags", err.Error())
@@ -49,6 +52,10 @@ func (h *TagHandler) CreateTag(context *gin.Context) {
 
 func (h *TagHandler) UpdateTag(context *gin.Context) {
 	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+	}
 	var updateTagRequest model.TagRequest
 
 	if err := context.BindJSON(&updateTagRequest); err != nil {

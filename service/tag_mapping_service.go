@@ -4,6 +4,7 @@ import (
 	"context"
 	"taas/model"
 	"taas/repository"
+	"taas/utils"
 )
 
 type TagMappingService struct {
@@ -57,6 +58,27 @@ func (s *TagMappingService) GetTagMappings(ctx context.Context, entityType strin
 
 	}
 	tagMappings, err := s.repo.GetTagMappings(ctx, entity.ID, entityID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var tagIDs []uint
+	for _, tm := range tagMappings {
+		tagIDs = append(tagIDs, tm.TagID)
+	}
+
+	return s.tagService.GetTagsByIDs(ctx, tagIDs)
+}
+
+func (s *TagMappingService) GetTagMappingsWithPagination(ctx context.Context,
+	entityType string, entityID uint, pagination *utils.Pagination) ([]model.TagResponse, error) {
+
+	entity, err := s.entityService.GetEntityByName(ctx, entityType)
+	if err != nil {
+
+	}
+	tagMappings, err := s.repo.GetWithPagination(ctx, entity.ID, entityID, pagination)
 
 	if err != nil {
 		return nil, err

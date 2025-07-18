@@ -12,6 +12,8 @@ type TagMapping struct {
 	EntityType int  `gorm:"type:int;not null;uniqueIndex:uniq_tag_map"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+
+	Tag Tag `gorm:"foreignKey:TagID;constraint:OnDelete:CASCADE;"`
 }
 
 type TagMappingRequest struct {

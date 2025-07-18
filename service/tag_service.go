@@ -4,6 +4,7 @@ import (
 	"context"
 	"taas/model"
 	"taas/repository"
+	"taas/utils"
 )
 
 type TagService struct {
@@ -18,6 +19,20 @@ func NewTagService(repo *repository.TagRepository) *TagService {
 
 func (s *TagService) GetAllTags(ctx context.Context) ([]model.TagResponse, error) {
 	tags, err := s.tagRepo.GetAll(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tagResponses := make([]model.TagResponse, len(tags))
+	for indx, tag := range tags {
+		tagResponses[indx] = *s.buildTagResponse(&tag)
+	}
+	return tagResponses, nil
+}
+
+func (s *TagService) GetTagsWithPagination(ctx context.Context, pagination *utils.Pagination) ([]model.TagResponse, error) {
+	tags, err := s.tagRepo.GetWithPagination(ctx, pagination)
 
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"taas/model"
+	"taas/utils"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +19,12 @@ func NewTagRepository(db *gorm.DB) *TagRepository {
 func (r *TagRepository) GetAll(ctx context.Context) ([]model.Tag, error) {
 	var tags []model.Tag
 	err := r.db.WithContext(ctx).Find(&tags).Error
+	return tags, err
+}
+
+func (r *TagRepository) GetWithPagination(ctx context.Context, pagination *utils.Pagination) ([]model.Tag, error) {
+	var tags []model.Tag
+	err := r.db.WithContext(ctx).Scopes(pagination.DBscope(r.db)).Order("id ASC").Find(&tags).Error
 	return tags, err
 }
 

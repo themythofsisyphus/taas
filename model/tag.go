@@ -15,12 +15,12 @@ type Tag struct {
 // serialisers
 
 type TagResponse struct {
-	ID   			uint   `json:"id"`
-	Name 			string `json:"name"`
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"upated_at"`
 }
 
 type TagRequest struct {
-	Name 			string `json:"name"`
+	Name string `json:"name"`
 }
