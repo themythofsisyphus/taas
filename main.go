@@ -16,15 +16,16 @@ import (
 func main() {
 	r := gin.Default()
 
-	// middlewares
-	r.Use(middleware.AuthMiddleware())
-	r.Use(middleware.Logger())
-
 	// config
 	configs, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal("Configs couldn't loaded")
 	}
+
+	// middlewares
+	r.Use(middleware.AuthMiddleware(&configs.JWTSecret))
+	r.Use(middleware.Logger())
+
 	db := db.InitDB(&configs.Database)
 
 	repos := repository.NewRepositories(db)

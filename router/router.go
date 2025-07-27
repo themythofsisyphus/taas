@@ -12,6 +12,7 @@ func RegisterRoutes(route *gin.Engine, services *service.Services) {
 	tagHandler := handler.NewTagHandler(services.Tag)
 	entityHandler := handler.NewEntityHandler(services.Entity)
 	tagMappingHandler := handler.NewTagMappingHandler(services.TagMapping)
+	tenantHandler := handler.NewTenantHandler(services.Tenant)
 
 	apis := route.Group("/api")
 	{
@@ -36,6 +37,13 @@ func RegisterRoutes(route *gin.Engine, services *service.Services) {
 			tagMappingsAPIs.GET("/:id", tagMappingHandler.ListTagMappings)
 			tagMappingsAPIs.POST("/:id", tagMappingHandler.CreateTagMappings)
 			tagMappingsAPIs.DELETE("/:id", tagMappingHandler.DeleteTagMappings)
+		}
+
+		tenantAPIs := apis.Group("/tenants")
+		{
+			tenantAPIs.POST("", tenantHandler.CreateTenant)
+			tenantAPIs.GET("/:id", tenantHandler.GetTenantByID)
+			tenantAPIs.DELETE("/:id", tenantHandler.DeleteTenant)
 		}
 	}
 

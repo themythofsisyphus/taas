@@ -9,6 +9,7 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Log      LogConfig
+	JWTSecret JWTSecretConfig
 }
 
 type ServerConfig struct {
@@ -31,6 +32,10 @@ type DatabaseConfig struct {
 type LogConfig struct {
 	Level  string
 	Format string
+}
+
+type JWTSecretConfig struct {
+	Key string
 }
 
 func LoadConfig() (*Config, error) {
@@ -58,6 +63,9 @@ func LoadConfig() (*Config, error) {
 		Log: LogConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
+		},
+		JWTSecret: JWTSecretConfig {
+			Key: getEnv("JWT_SECRET", "wN3vP8qjR9tL5kZxT2sA7yH0uE6fV4dG"),
 		},
 	}, nil
 }

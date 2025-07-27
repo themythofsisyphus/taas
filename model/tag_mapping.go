@@ -13,7 +13,9 @@ type TagMapping struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 
-	Tag Tag `gorm:"foreignKey:TagID;constraint:OnDelete:CASCADE;"`
+	Tag    Tag    `gorm:"foreignKey:TagID;constraint:OnDelete:CASCADE;"`
+	Tenant Tenant `gorm:"foreignKey:TenantID;constraint:OnDelete:CASCADE;"`
+	Entity Entity `gorm:"foreignKey:EntityType;constraint:OnDelete:RESTRICT;"`
 }
 
 type TagMappingRequest struct {

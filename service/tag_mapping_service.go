@@ -23,7 +23,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
-
+		return nil, err
 	}
 
 	for _, tagID := range reqTags.TagIDs {
@@ -37,7 +37,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 	err = s.repo.CreateTagMappings(ctx, tagMappings)
 
 	if err != nil {
-
+		return nil, err
 	}
 
 	return s.tagService.GetTagsByIDs(ctx, reqTags.TagIDs)
@@ -46,7 +46,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 func (s *TagMappingService) RemoveTagMappings(ctx context.Context, reqTags *model.TagMappingRequest, entityType string, entityID uint) error {
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
-
+		return err
 	}
 
 	return s.repo.DeleteTagMappings(ctx, reqTags.TagIDs, entityID, entity.ID)
@@ -55,7 +55,7 @@ func (s *TagMappingService) RemoveTagMappings(ctx context.Context, reqTags *mode
 func (s *TagMappingService) GetTagMappings(ctx context.Context, entityType string, entityID uint) ([]model.TagResponse, error) {
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
-
+		return nil, err
 	}
 	tagMappings, err := s.repo.GetTagMappings(ctx, entity.ID, entityID)
 
@@ -76,7 +76,7 @@ func (s *TagMappingService) GetTagMappingsWithPagination(ctx context.Context,
 
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
-
+		return nil, err
 	}
 	tagMappings, err := s.repo.GetWithPagination(ctx, entity.ID, entityID, pagination)
 

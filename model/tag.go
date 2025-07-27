@@ -10,6 +10,8 @@ type Tag struct {
 	TenantID  uint   `gorm:"type:bigint;not null;;uniqueIndex:uniq_tag"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	Tenant Tenant `gorm:"foreignKey:TenantID;constraint:OnDelete:CASCADE;"`
 }
 
 // serialisers

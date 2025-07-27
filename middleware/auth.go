@@ -2,23 +2,61 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+	"strings"
+	"taas/config"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(config *config.JWTSecretConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Example: Extract tenant_id from header
-		// tenantID := c.GetHeader("X-Tenant-ID")
-		// if tenantID == "" {
-		//     c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing tenant_id"})
-		//     return
-		// }
 
-		// Set tenant_id in Gin context
-		tenantID := uint(1)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+			c.Abort()
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+			c.Abort()
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrTokenMalformed
+			}
+			return []byte(config.Key), nil
+		})
+
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		tenantIDFloat, ok := claims["tenant_id"].(float64)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "tenant_id missing in token"})
+			c.Abort()
+			return
+		}
+		tenantID := uint(tenantIDFloat)
 		c.Set("tenant_id", tenantID)
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "tenant_id", tenantID))
+		ctx := context.WithValue(c.Request.Context(), "tenant_id", tenantID)
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

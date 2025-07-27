@@ -36,6 +36,15 @@ func InitDB(config *config.DatabaseConfig) *gorm.DB {
 		log.Fatal("Failed to migrate Entity table:", err)
 	}
 
+	if err := db.AutoMigrate(&model.Tenant{}); err != nil {
+		log.Println("Attempting to migrate Tenant table...")
+		if err := db.AutoMigrate(&model.Tenant{}); err != nil {
+			log.Fatal("Failed to migrate Tenant table:", err)
+		}
+		log.Println("Tenant table migrated successfully.")
+		log.Fatal("Failed to migrate Tenant table:", err)
+	}
+
 	registerTenantCallback(db)
 
 	return db
