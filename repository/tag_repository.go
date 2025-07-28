@@ -53,3 +53,12 @@ func (r *TagRepository) Update(ctx context.Context, tag *model.Tag) error {
 func (r *TagRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&model.Tag{}, id).Error
 }
+
+func (r *TagRepository) Search(ctx context.Context, term string, pagination *utils.Pagination) ([]model.Tag, error) {
+	var tags []model.Tag
+	err := r.db.WithContext(ctx).
+		Raw(`SELECT * FROM tags WHERE name_tsv @@ plainto_tsquery('english', ?)`, term).
+		Scopes(pagination.DBscope(r.db)).Order("id ASC").
+		Scan(&tags).Error
+	return tags, err
+}

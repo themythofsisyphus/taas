@@ -1,84 +1,98 @@
-````markdown name=README.md
-# Tags as a Service (taas)
+# taas
 
-Tags as a Service (`taas`) is a Go-based project designed to provide a simple, scalable, and efficient tagging solution for your applications. Whether you need to organize, categorize, or filter data, `taas` makes it easy to add, manage, and query tags across your services.
+## Description
+
+This is a Go application built with the Gin framework and GORM. It provides a REST API for managing tags, entities, tag mappings, and tenants.
 
 ## Features
 
-- **RESTful Tag API:** Easily create, update, delete, and query tags via HTTP endpoints.
-- **Flexible Tag Attachments:** Associate tags with any resource or entity.
-- **Fast and Lightweight:** Built with Go for high performance and minimal resource usage.
-- **Extensible Design:** Easy to integrate with existing systems and expand for custom needs.
+*   Authentication using JWT
+*   Logging using Logrus
+*   PostgreSQL database support
+*   CRUD operations for tags, entities, tag mappings, and tenants
 
-## Getting Started
+## Setup
 
 ### Prerequisites
 
-- [Go](https://golang.org/dl/) 1.18 or higher
+*   Go 1.24 or higher
+*   PostgreSQL database
 
 ### Installation
 
-Clone the repository:
+1.  Clone the repository:
+
+    ```bash
+    git clone <repository_url>
+    ```
+
+2.  Navigate to the project directory:
+
+    ```bash
+    cd taas
+    ```
+
+3.  Install dependencies:
+
+    ```bash
+    go mod download
+    ```
+
+4.  Configure the application:
+
+    Create a `config.yaml` file with the following contents:
+
+    ```yaml
+    server:
+      port: "8080"
+      read_timeout: 10s
+      write_timeout: 10s
+      idle_timeout: 30s
+    database:
+      host: "localhost"
+      port: "5432"
+      user: "postgres"
+      password: "password"
+      dbname: "taas"
+    jwt_secret: "secret"
+    ```
+
+    Replace the placeholder values with your actual configuration.
+
+5.  Run the database migrations:
+
+    ```bash
+    go run main.go migrate
+    ```
+
+6.  Start the server:
+
+    ```bash
+    go run main.go
+    ```
+
+## Usage
+
+The API endpoints are documented in the `router/router.go` file. You can use a tool like curl or Postman to interact with the API.
+
+### Examples
+
+#### Create a tag
 
 ```bash
-git clone https://github.com/themythofsisyphus/taas.git
-cd taas
+curl -X POST http://localhost:8080/api/tags -H "Content-Type: application/json" -H "Authorization: Bearer <jwt_token>" -d '{"name": "example"}'
 ```
 
-Build the project:
+#### Get a tag by ID
 
 ```bash
-go build -o taas
-```
-
-### Usage
-
-Start the service:
-
-```bash
-./taas
-```
-
-By default, the service will start on port `8080`. You can configure this in the source code or with environment variables (see below).
-
-#### API Endpoints
-
-- `POST /tags` - Create a new tag
-- `GET /tags` - List all tags
-- `GET /tags/{id}` - Get a specific tag
-- `PUT /tags/{id}` - Update a tag
-- `DELETE /tags/{id}` - Delete a tag
-- `POST /attach` - Attach tags to resources
-- `GET /resource/{id}/tags` - List tags for a specific resource
-
-#### Configuration
-
-You can configure the service via environment variables:
-
-- `PORT` - The port to run the service on (default: 8080)
-- `DATABASE_URL` - Database connection string if persistence is enabled
-
-## Example
-
-```bash
-curl -X POST http://localhost:8080/tags -d '{"name": "golang"}'
+curl -X GET http://localhost:8080/api/tags/1 -H "Authorization: Bearer <jwt_token>"
 ```
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome!
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
+Contributions are welcome! Please open a pull request with your changes.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Author
-
-Maintained by [themythofsisyphus](https://github.com/themythofsisyphus).
-````
+[MIT](LICENSE)

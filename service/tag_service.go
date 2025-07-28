@@ -102,6 +102,21 @@ func (s *TagService) DeleteTag(ctx context.Context, id uint) error {
 	return s.tagRepo.Delete(ctx, id)
 }
 
+func (s *TagService) SearchTags(ctx context.Context, term string, pagination *utils.Pagination) ([]model.TagResponse, error) {
+
+	tags, err := s.tagRepo.Search(ctx, term, pagination)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tagResponses := make([]model.TagResponse, len(tags))
+	for indx, tag := range tags {
+		tagResponses[indx] = *s.buildTagResponse(&tag)
+	}
+	return tagResponses, nil
+}
+
 func (s *TagService) buildTagResponse(tag *model.Tag) *model.TagResponse {
 	response := &model.TagResponse{
 		ID:        tag.ID,

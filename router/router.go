@@ -23,6 +23,7 @@ func RegisterRoutes(route *gin.Engine, services *service.Services) {
 			tagAPIs.GET("/:id", tagHandler.GetTagByID)
 			tagAPIs.PUT("/:id", tagHandler.UpdateTag)
 			tagAPIs.DELETE("/:id", tagHandler.DeleteTag)
+			tagAPIs.GET("/search", tagHandler.SearchTags)
 		}
 
 		entitiesAPIs := apis.Group("/entities")

@@ -1,11 +1,14 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"taas/config"
-	"taas/model"
 
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,38 +19,39 @@ func InitDB(config *config.DatabaseConfig) *gorm.DB {
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
 		config.Host, config.UserName, config.Password, config.Name, config.Port, config.SSLMode)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+
+	// Raw sql.DB connection for goose
+	sqlDB, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal("Failed to open SQL DB:", err)
+	}
+
+	// Run Goose migrations
+	goose.SetBaseFS(os.DirFS("."))
+	goose.SetDialect("postgres")
+	migrationsDir := "db/migrations"
+
+	if err := goose.Up(sqlDB, migrationsDir); err != nil {
+		log.Fatalf("Goose migration failed: %v", err)
+	}
+
+	log.Println("Goose migrations completed successfully")
+
+	// Wrap into GORM
+	gormDB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: sqlDB,
+	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
-		log.Fatal("Failed to connect to DB:", err)
+		log.Fatal("Failed to connect to GORM DB:", err)
 	}
 
-	if err := db.AutoMigrate(&model.Tag{}); err != nil {
-		log.Fatal("Failed to migrate Tag table:", err)
-	}
+	// Register GORM hooks or callbacks
+	registerTenantCallback(gormDB)
 
-	if err := db.AutoMigrate(&model.TagMapping{}); err != nil {
-		log.Fatal("Failed to migrate Tag Mapping table:", err)
-	}
-
-	if err := db.AutoMigrate(&model.Entity{}); err != nil {
-		log.Fatal("Failed to migrate Entity table:", err)
-	}
-
-	if err := db.AutoMigrate(&model.Tenant{}); err != nil {
-		log.Println("Attempting to migrate Tenant table...")
-		if err := db.AutoMigrate(&model.Tenant{}); err != nil {
-			log.Fatal("Failed to migrate Tenant table:", err)
-		}
-		log.Println("Tenant table migrated successfully.")
-		log.Fatal("Failed to migrate Tenant table:", err)
-	}
-
-	registerTenantCallback(db)
-
-	return db
+	return gormDB
 }
 
 func registerTenantCallback(db *gorm.DB) {

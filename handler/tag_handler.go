@@ -102,3 +102,17 @@ func (h *TagHandler) GetTagByID(context *gin.Context) {
 
 	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tag)
 }
+
+func (h *TagHandler) SearchTags(context *gin.Context) {
+	searchTerm := context.DefaultQuery("term", "")
+	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
+
+	tags, err := h.tagService.SearchTags(context, searchTerm, utils.NewPagination(page, limit))
+
+	if err != nil {
+		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
+	}
+
+	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tags)
+}
