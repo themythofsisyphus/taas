@@ -46,3 +46,9 @@ func (r *TagMappingRepo) DeleteTagMappings(ctx context.Context, tagIDs []uint, e
 		Delete(&model.TagMapping{}, "entity_type = ? AND entity_id = ? AND tag_id IN ?", entityType, entityID, tagIDs).Error
 	return err
 }
+
+func (r *TagMappingRepo) GetCount(ctx context.Context, entityType int, entityID uint) (uint, error) {
+	var count int64
+	err := r.db.Model(&model.TagMapping{}).WithContext(ctx).Where("entity_type = ? AND entity_id = ?", entityType, entityID).Count(&count).Error
+	return uint(count), err
+}

@@ -45,6 +45,16 @@ func (s *TagService) GetTagsWithPagination(ctx context.Context, pagination *util
 	return tagResponses, nil
 }
 
+func (s *TagService) GetTagsCount(ctx context.Context) (uint, error) {
+	tagsCount, err := s.tagRepo.GetCount(ctx)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return tagsCount, err
+}
+
 func (s *TagService) GetTagByID(ctx context.Context, id uint) (*model.TagResponse, error) {
 	tag, err := s.tagRepo.GetByID(ctx, id)
 
@@ -115,6 +125,17 @@ func (s *TagService) SearchTags(ctx context.Context, term string, pagination *ut
 		tagResponses[indx] = *s.buildTagResponse(&tag)
 	}
 	return tagResponses, nil
+}
+
+func (s *TagService) SearchTagsCount(ctx context.Context, term string) (uint, error) {
+
+	tagsCount, err := s.tagRepo.SearchCount(ctx, term)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return tagsCount, err
 }
 
 func (s *TagService) buildTagResponse(tag *model.Tag) *model.TagResponse {

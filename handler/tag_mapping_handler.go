@@ -56,10 +56,14 @@ func (h *TagMappingHandler) ListTagMappings(context *gin.Context) {
 	tags, err := h.tagMappingService.GetTagMappingsWithPagination(context, entityType, uint(entityID), utils.NewPagination(page, limit))
 
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive", nil)
+		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive", err.Error())
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Mappings retrived Successfully", tags)
+	tagsCount, _ := h.tagMappingService.GetTagMappingsCount(context, entityType, uint(entityID))
+
+	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
+
+	utils.SuccessResponse(context, http.StatusOK, "Tag Mappings retrived Successfully", tags, metaResponse)
 }
 
 func (h *TagMappingHandler) DeleteTagMappings(context *gin.Context) {

@@ -91,3 +91,14 @@ func (s *TagMappingService) GetTagMappingsWithPagination(ctx context.Context,
 
 	return s.tagService.GetTagsByIDs(ctx, tagIDs)
 }
+
+func (s *TagMappingService) GetTagMappingsCount(ctx context.Context, entityType string, entityID uint) (uint, error) {
+	entity, _ := s.entityService.GetEntityByName(ctx, entityType)
+	tagCount, err := s.repo.GetCount(ctx, entity.ID, entityID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return tagCount, err
+}

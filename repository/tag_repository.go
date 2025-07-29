@@ -22,6 +22,12 @@ func (r *TagRepository) GetAll(ctx context.Context) ([]model.Tag, error) {
 	return tags, err
 }
 
+func (r *TagRepository) GetCount(ctx context.Context) (uint, error) {
+	var count int64
+	err := r.db.Model(&model.Tag{}).WithContext(ctx).Count(&count).Error
+	return uint(count), err
+}
+
 func (r *TagRepository) GetWithPagination(ctx context.Context, pagination *utils.Pagination) ([]model.Tag, error) {
 	var tags []model.Tag
 	err := r.db.WithContext(ctx).Scopes(pagination.DBscope(r.db)).Order("id ASC").Find(&tags).Error
@@ -61,4 +67,12 @@ func (r *TagRepository) Search(ctx context.Context, term string, pagination *uti
 		Scopes(pagination.DBscope(r.db)).Order("id ASC").
 		Scan(&tags).Error
 	return tags, err
+}
+
+func (r *TagRepository) SearchCount(ctx context.Context, term string) (uint, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Raw(`SELECT COUNT(*) FROM tags WHERE name_tsv @@ plainto_tsquery('english', ?)`, term).
+		Scan(&count).Error
+	return uint(count), err
 }

@@ -26,12 +26,15 @@ func (h *TagHandler) ListTags(context *gin.Context) {
 	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
 
 	tags, err := h.tagService.GetTagsWithPagination(context, utils.NewPagination(page, limit))
+	tagsCount, _ := h.tagService.GetTagsCount(context)
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Failed to retrive tags", err.Error())
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tags retrived successfully", tags)
+	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
+
+	utils.SuccessResponse(context, http.StatusOK, "Tags retrived successfully", tags, metaResponse)
 }
 
 func (h *TagHandler) CreateTag(context *gin.Context) {
@@ -109,10 +112,13 @@ func (h *TagHandler) SearchTags(context *gin.Context) {
 	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
 
 	tags, err := h.tagService.SearchTags(context, searchTerm, utils.NewPagination(page, limit))
+	tagsCount, _ := h.tagService.SearchTagsCount(context, searchTerm)
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tags)
+	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
+
+	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tags, metaResponse)
 }
