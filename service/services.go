@@ -1,6 +1,9 @@
 package service
 
-import "taas/repository"
+import (
+	"taas/repository"
+	"taas/utils"
+)
 
 type Services struct {
 	Tag        *TagService
@@ -9,8 +12,8 @@ type Services struct {
 	Tenant     *TenantService
 }
 
-func NewServices(repos *repository.Repositories) *Services {
-	entityService := NewEntityService(repos.Entity)
+func NewServices(repos *repository.Repositories, cache *utils.Cache) *Services {
+	entityService := NewEntityService(repos.Entity, cache)
 	tagService := NewTagService(repos.Tag)
 	tenantService := NewTenantService(repos.Tenant)
 	return &Services{

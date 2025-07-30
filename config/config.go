@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	Memcache MemcacheConfig
 	Log      LogConfig
 	JWTSecret JWTSecretConfig
 }
@@ -27,6 +28,11 @@ type DatabaseConfig struct {
 	Password string
 	Name     string
 	SSLMode  string
+}
+
+type MemcacheConfig struct {
+	Host string
+	Port string
 }
 
 type LogConfig struct {
@@ -59,6 +65,10 @@ func LoadConfig() (*Config, error) {
 			Password: getEnv("DB_PASSWORD", "taasuser"),
 			Name:     getEnv("DB_NAME", "taas"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+		},
+		Memcache: MemcacheConfig{
+			Host: 		getEnv("MEMCACHED_HOST", "127.0.0.1"),
+			Port:     getEnv("MEMCACHED_PORT", "11211"),
 		},
 		Log: LogConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),

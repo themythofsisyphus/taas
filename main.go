@@ -9,6 +9,7 @@ import (
 	"taas/repository"
 	"taas/router"
 	"taas/service"
+	"taas/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +28,10 @@ func main() {
 	r.Use(middleware.Logger())
 
 	db := db.InitDB(&configs.Database)
+	cache := utils.NewCacheClient(&configs.Memcache)
 
 	repos := repository.NewRepositories(db)
-	services := service.NewServices(repos)
+	services := service.NewServices(repos, cache)
 	router.RegisterRoutes(r, services)
 
 	// http server
