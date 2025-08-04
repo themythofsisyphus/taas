@@ -25,6 +25,7 @@ func (s *EntityService) GetAllEntities(ctx context.Context) ([]model.EntityRespo
 	entities, err := s.entityRepo.GetAll(ctx)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -43,6 +44,7 @@ func (s *EntityService) CreateEntity(ctx context.Context, entity *model.EntityRe
 
 	createdEntity, err := s.entityRepo.Create(ctx, newEntity)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -53,7 +55,14 @@ func (s *EntityService) CreateEntity(ctx context.Context, entity *model.EntityRe
 }
 
 func (s *EntityService) DeleteEntity(ctx context.Context, eType string) error {
-	return s.entityRepo.Delete(ctx, eType)
+	err := s.entityRepo.Delete(ctx, eType)
+
+	if err == nil {
+		entityKey := utils.EntityCacheKey(eType, ctx.Value("tenant_id").(uint))
+		s.cacheClient.Remove(entityKey)
+	}
+
+	return err
 }
 
 func (s *EntityService) GetEntityByName(ctx context.Context, name string) (*model.EntityResponse, error) {
@@ -73,6 +82,7 @@ func (s *EntityService) GetEntityByName(ctx context.Context, name string) (*mode
 	entity, err := s.entityRepo.GetByName(ctx, name)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 	return s.buildEntityResponse(entity), nil

@@ -23,6 +23,7 @@ func (h *TenantHandler) CreateTenant(context *gin.Context) {
 
 	if err := context.BindJSON(&tenant); err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	newTenant := model.Tenant{
@@ -33,6 +34,7 @@ func (h *TenantHandler) CreateTenant(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusCreated, "Tenant Created Successfully", createdTenant)

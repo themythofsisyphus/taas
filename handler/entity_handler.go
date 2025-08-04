@@ -24,11 +24,13 @@ func (h *EntityHandler) CreateEntity(context *gin.Context) {
 
 	if err := context.BindJSON(&createEntityRequest); err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	newEntity, err := h.entityService.CreateEntity(context, &createEntityRequest)
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Entity can't be created", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusCreated, "Entity Created Successfully", newEntity)
@@ -39,6 +41,7 @@ func (h *EntityHandler) DeleteEntity(context *gin.Context) {
 
 	if err := h.entityService.DeleteEntity(context, entityType); err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Entity can't be deleted", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusNoContent, "Entity is deleted", nil)
@@ -50,6 +53,7 @@ func (h *EntityHandler) ListEntities(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive entities", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusOK, "Tag retrived", entities)

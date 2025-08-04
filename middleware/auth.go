@@ -5,12 +5,17 @@ import (
 	"net/http"
 	"strings"
 	"taas/config"
+	"taas/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(config *config.JWTSecretConfig) gin.HandlerFunc {
+type contextKey string
+
+const tenantIDKey contextKey = "tenant_id"
+
+func AuthMiddleware(config *config.JWTSecretConfig, tenantService *service.TenantService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		authHeader := c.GetHeader("Authorization")
@@ -54,8 +59,16 @@ func AuthMiddleware(config *config.JWTSecretConfig) gin.HandlerFunc {
 			return
 		}
 		tenantID := uint(tenantIDFloat)
-		c.Set("tenant_id", tenantID)
-		ctx := context.WithValue(c.Request.Context(), "tenant_id", tenantID)
+		_, err = tenantService.GetTenantByID(tenantID)
+
+		if err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "tenant_id not found"})
+			c.Abort()
+			return
+		}
+
+		c.Set(string(tenantIDKey), tenantID)
+		ctx := context.WithValue(c.Request.Context(), tenantIDKey, tenantID)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

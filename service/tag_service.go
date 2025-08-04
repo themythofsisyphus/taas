@@ -5,6 +5,8 @@ import (
 	"taas/model"
 	"taas/repository"
 	"taas/utils"
+
+	"log"
 )
 
 type TagService struct {
@@ -21,6 +23,7 @@ func (s *TagService) GetAllTags(ctx context.Context) ([]model.TagResponse, error
 	tags, err := s.tagRepo.GetAll(ctx)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -35,6 +38,7 @@ func (s *TagService) GetTagsWithPagination(ctx context.Context, pagination *util
 	tags, err := s.tagRepo.GetWithPagination(ctx, pagination)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -49,6 +53,7 @@ func (s *TagService) GetTagsCount(ctx context.Context) (uint, error) {
 	tagsCount, err := s.tagRepo.GetCount(ctx)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return 0, err
 	}
 
@@ -59,6 +64,7 @@ func (s *TagService) GetTagByID(ctx context.Context, id uint) (*model.TagRespons
 	tag, err := s.tagRepo.GetByID(ctx, id)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -70,6 +76,7 @@ func (s *TagService) GetTagsByIDs(ctx context.Context, ids []uint) ([]model.TagR
 	tags, err := s.tagRepo.GetByIDs(ctx, ids)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -88,6 +95,7 @@ func (s *TagService) CreateTag(ctx context.Context, tag *model.TagRequest) (*mod
 
 	createdTag, err := s.tagRepo.Create(ctx, newTag)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 	return s.buildTagResponse(createdTag), nil
@@ -97,11 +105,13 @@ func (s *TagService) UpdateTag(ctx context.Context, tagID uint, tag *model.TagRe
 	updatedTag, err := s.tagRepo.GetByID(ctx, tagID)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 	updatedTag.Name = tag.Name
 
 	if err := s.tagRepo.Update(ctx, updatedTag); err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -117,6 +127,7 @@ func (s *TagService) SearchTags(ctx context.Context, term string, pagination *ut
 	tags, err := s.tagRepo.Search(ctx, term, pagination)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -132,6 +143,7 @@ func (s *TagService) SearchTagsCount(ctx context.Context, term string) (uint, er
 	tagsCount, err := s.tagRepo.SearchCount(ctx, term)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return 0, err
 	}
 

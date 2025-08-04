@@ -30,6 +30,7 @@ func (h *TagHandler) ListTags(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusInternalServerError, "Failed to retrive tags", err.Error())
+		return
 	}
 
 	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
@@ -42,12 +43,14 @@ func (h *TagHandler) CreateTag(context *gin.Context) {
 
 	if err := context.BindJSON(&createTagRequest); err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	newTag, err := h.tagService.CreateTag(context, &createTagRequest)
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusCreated, "Tag Created Successfully", newTag)
@@ -58,17 +61,20 @@ func (h *TagHandler) UpdateTag(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+		return
 	}
 	var updateTagRequest model.TagRequest
 
 	if err := context.BindJSON(&updateTagRequest); err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	updatedTag, err := h.tagService.UpdateTag(context, uint(id), &updateTagRequest)
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusOK, "Tag Updated Successfully", updatedTag)
@@ -79,12 +85,14 @@ func (h *TagHandler) DeleteTag(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+		return
 	}
 
 	err = h.tagService.DeleteTag(context, uint(id))
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Tag can't be deleted", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusOK, "Tag Deleted", nil)
@@ -95,12 +103,14 @@ func (h *TagHandler) GetTagByID(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+		return
 	}
 
 	tag, err := h.tagService.GetTagByID(context, uint(id))
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
+		return
 	}
 
 	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tag)
@@ -116,6 +126,7 @@ func (h *TagHandler) SearchTags(context *gin.Context) {
 
 	if err != nil {
 		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
+		return
 	}
 
 	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)

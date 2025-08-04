@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"taas/model"
 	"taas/repository"
 	"taas/utils"
@@ -23,6 +24,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -37,6 +39,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 	err = s.repo.CreateTagMappings(ctx, tagMappings)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -46,6 +49,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 func (s *TagMappingService) RemoveTagMappings(ctx context.Context, reqTags *model.TagMappingRequest, entityType string, entityID uint) error {
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return err
 	}
 
@@ -55,11 +59,13 @@ func (s *TagMappingService) RemoveTagMappings(ctx context.Context, reqTags *mode
 func (s *TagMappingService) GetTagMappings(ctx context.Context, entityType string, entityID uint) ([]model.TagResponse, error) {
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 	tagMappings, err := s.repo.GetTagMappings(ctx, entity.ID, entityID)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -76,11 +82,13 @@ func (s *TagMappingService) GetTagMappingsWithPagination(ctx context.Context,
 
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 	tagMappings, err := s.repo.GetWithPagination(ctx, entity.ID, entityID, pagination)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return nil, err
 	}
 
@@ -97,6 +105,7 @@ func (s *TagMappingService) GetTagMappingsCount(ctx context.Context, entityType 
 	tagCount, err := s.repo.GetCount(ctx, entity.ID, entityID)
 
 	if err != nil {
+		log.Println("[Error] Issue raised in ", err.Error())
 		return 0, err
 	}
 

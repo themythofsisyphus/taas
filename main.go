@@ -23,15 +23,18 @@ func main() {
 		log.Fatal("Configs couldn't loaded")
 	}
 
-	// middlewares
-	r.Use(middleware.AuthMiddleware(&configs.JWTSecret))
-	r.Use(middleware.Logger())
-
 	db := db.InitDB(&configs.Database)
 	cache := utils.NewCacheClient(&configs.Memcache)
 
 	repos := repository.NewRepositories(db)
 	services := service.NewServices(repos, cache)
+
+	// middlewares
+	r.Use(middleware.AuthMiddleware(&configs.JWTSecret, services.Tenant))
+	r.Use(middleware.Logger())
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
 	router.RegisterRoutes(r, services)
 
 	// http server
