@@ -46,7 +46,7 @@ The application is configured using environment variables. You can create a `.en
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/themythofsisyphus/taas.git
     cd taas
     ```
 

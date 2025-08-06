@@ -3,8 +3,11 @@
 package config
 
 import (
+	"log"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config aggregates all configuration sections required to run the application.
@@ -54,6 +57,12 @@ type JWTSecretConfig struct {
 
 // LoadConfig reads environment variables and returns a fully initialized Config instance.
 func LoadConfig() (*Config, error) {
+
+	err := godotenv.Load() // loads .env from the root
+	if err != nil {
+		log.Println("Warning: .env file not found or failed to load")
+	}
+
 	readTimeout, _ := time.ParseDuration(getEnv("SERVER_READ_TIMEOUT", "10s"))
 	writeTimeout, _ := time.ParseDuration(getEnv("SERVER_WRITE_TIMEOUT", "10s"))
 	idleTimeout, _ := time.ParseDuration(getEnv("SERVER_IDLE_TIMEOUT", "60s"))
@@ -70,7 +79,7 @@ func LoadConfig() (*Config, error) {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
 			UserName: getEnv("DB_USER", "taasuser"),
-			Password: getEnv("DB_PASSWORD", "taasuser"),
+			Password: getEnv("DB_PASSWORD", ""),
 			Name:     getEnv("DB_NAME", "taas"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
@@ -83,7 +92,7 @@ func LoadConfig() (*Config, error) {
 			Format: getEnv("LOG_FORMAT", "json"),
 		},
 		JWTSecret: JWTSecretConfig{
-			Key: getEnv("JWT_SECRET", "wN3vP8qjR9tL5kZxT2sA7yH0uE6fV4dG"),
+			Key: getEnv("JWT_SECRET", ""),
 		},
 	}, nil
 }
