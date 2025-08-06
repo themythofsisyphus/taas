@@ -8,7 +8,7 @@ import (
 	"os"
 	"taas/config"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // pg driver
 	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
