@@ -1,9 +1,11 @@
+// Package model defines database models and request structures related to tag mappings.
 package model
 
 import (
 	"time"
 )
 
+// TagMapping represents the association between a tag and an entity within a tenant's scope.
 type TagMapping struct {
 	ID         uint `gorm:"primaryKey"`
 	TenantID   uint `gorm:"type:bigint;not null;uniqueIndex:uniq_tag_map"`
@@ -18,6 +20,7 @@ type TagMapping struct {
 	Entity Entity `gorm:"foreignKey:EntityType;constraint:OnDelete:RESTRICT;"`
 }
 
+// TagMappingRequest defines the request payload for mapping tags to an entity.
 type TagMappingRequest struct {
 	TagIDs []uint `json:"tag_ids"`
 }

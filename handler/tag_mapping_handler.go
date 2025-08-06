@@ -1,97 +1,97 @@
+// Package handler defines HTTP handlers for managing entities, tags, tenants, and their mappings.
 package handler
 
 import (
 	"net/http"
+	"strconv"
 	"taas/model"
 	"taas/service"
 	"taas/utils"
 
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 )
 
+// TagMappingHandler handles HTTP requests related to tag mapping operations.
 type TagMappingHandler struct {
 	tagMappingService *service.TagMappingService
 }
 
+// NewTagMappingHandler returns a new instance of TagMappingHandler.
 func NewTagMappingHandler(service *service.TagMappingService) *TagMappingHandler {
 	return &TagMappingHandler{
 		tagMappingService: service,
 	}
 }
 
-func (h *TagMappingHandler) CreateTagMappings(context *gin.Context) {
-	entityType := context.Param("entity_type")
-	entityID, err := strconv.ParseUint(context.Param("id"), 10, 0)
-
+// CreateTagMappings handles the creation of tag mappings for a given entity.
+func (h *TagMappingHandler) CreateTagMappings(ctx *gin.Context) {
+	entityType := ctx.Param("entity_type")
+	entityID, err := strconv.ParseUint(ctx.Param("id"), 10, 0)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid entity ID", err.Error())
 		return
 	}
+
 	var tagMappingReq model.TagMappingRequest
-
-	if err := context.BindJSON(&tagMappingReq); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid request", err.Error())
+	if err := ctx.ShouldBindJSON(&tagMappingReq); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err.Error())
 		return
 	}
 
-	tags, err := h.tagMappingService.CreateTagMappings(context, &tagMappingReq, entityType, uint(entityID))
-
+	tags, err := h.tagMappingService.CreateTagMappings(ctx, &tagMappingReq, entityType, uint(entityID))
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create tag mappings", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Mappings retrived Successfully", tags)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tag mappings created successfully", tags)
 }
 
-func (h *TagMappingHandler) ListTagMappings(context *gin.Context) {
-	entityType := context.Param("entity_type")
-	entityID, err := strconv.ParseUint(context.Param("id"), 10, 0)
-	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
-
+// ListTagMappings handles listing tag mappings for a given entity with pagination.
+func (h *TagMappingHandler) ListTagMappings(ctx *gin.Context) {
+	entityType := ctx.Param("entity_type")
+	entityID, err := strconv.ParseUint(ctx.Param("id"), 10, 0)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid entity ID", err.Error())
 		return
 	}
 
-	tags, err := h.tagMappingService.GetTagMappingsWithPagination(context, entityType, uint(entityID), utils.NewPagination(page, limit))
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50"))
+	pagination := utils.NewPagination(page, limit)
 
+	tags, err := h.tagMappingService.GetTagMappingsWithPagination(ctx, entityType, uint(entityID), pagination)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to retrieve tag mappings", err.Error())
 		return
 	}
 
-	tagsCount, _ := h.tagMappingService.GetTagMappingsCount(context, entityType, uint(entityID))
+	tagsCount, _ := h.tagMappingService.GetTagMappingsCount(ctx, entityType, uint(entityID))
+	meta := utils.PaginationMetaResponse(tagsCount, limit)
 
-	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
-
-	utils.SuccessResponse(context, http.StatusOK, "Tag Mappings retrived Successfully", tags, metaResponse)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tag mappings retrieved successfully", tags, meta)
 }
 
-func (h *TagMappingHandler) DeleteTagMappings(context *gin.Context) {
-	entityType := context.Param("entity_type")
-	entityID, err := strconv.ParseUint(context.Param("id"), 10, 0)
-
+// DeleteTagMappings handles the removal of tag mappings for a given entity.
+func (h *TagMappingHandler) DeleteTagMappings(ctx *gin.Context) {
+	entityType := ctx.Param("entity_type")
+	entityID, err := strconv.ParseUint(ctx.Param("id"), 10, 0)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid entity ID", err.Error())
 		return
 	}
+
 	var tagMappingReq model.TagMappingRequest
-
-	if err := context.BindJSON(&tagMappingReq); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid request", err.Error())
+	if err := ctx.ShouldBindJSON(&tagMappingReq); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err.Error())
 		return
 	}
 
-	err = h.tagMappingService.RemoveTagMappings(context, &tagMappingReq, entityType, uint(entityID))
-
+	err = h.tagMappingService.RemoveTagMappings(ctx, &tagMappingReq, entityType, uint(entityID))
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Tag can't be deleted", nil)
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete tag mappings", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusNoContent, "Tag mappings deleted", gin.H{})
+	utils.SuccessResponse(ctx, http.StatusNoContent, "Tag mappings deleted successfully", gin.H{})
 }

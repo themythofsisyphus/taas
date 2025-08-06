@@ -1,5 +1,5 @@
+// Package middleware provides Gin middleware components.
 package middleware
-
 
 import (
 	"time"
@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Logger returns a Gin middleware that logs HTTP requests using logrus in JSON format.
 func Logger() gin.HandlerFunc {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})

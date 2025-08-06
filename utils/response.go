@@ -1,3 +1,4 @@
+// Package utils contains utility functions including caching logic and helpers.
 package utils
 
 import (
@@ -6,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SuccessResponse sends a standard JSON response with success = true.
+// Accepts optional meta data as a variadic parameter.
 func SuccessResponse(context *gin.Context, statusCode int, message string, data any, meta ...interface{}) {
 	var metaValue any
 	if len(meta) > 0 {
@@ -22,16 +25,18 @@ func SuccessResponse(context *gin.Context, statusCode int, message string, data 
 	context.JSON(statusCode, response)
 }
 
+// ErrorResponse sends a standard JSON response with success = false.
 func ErrorResponse(context *gin.Context, statusCode int, message string, err any) {
-	respsonse := model.APIResponse{
+	response := model.APIResponse{
 		Message: message,
 		Success: false,
 		Error:   err,
 	}
 
-	context.JSON(statusCode, respsonse)
+	context.JSON(statusCode, response)
 }
 
+// PaginationMetaResponse builds pagination metadata for paginated endpoints.
 func PaginationMetaResponse(total uint, limit int) *model.PaginationMetaResponse {
 	return &model.PaginationMetaResponse{
 		Total:      total,

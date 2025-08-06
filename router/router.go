@@ -1,3 +1,4 @@
+// Package router initializes and registers API routes for the application.
 package router
 
 import (
@@ -7,45 +8,48 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(route *gin.Engine, services *service.Services) {
-
+// RegisterRoutes registers all API routes with the given Gin engine.
+func RegisterRoutes(router *gin.Engine, services *service.Services) {
 	tagHandler := handler.NewTagHandler(services.Tag)
 	entityHandler := handler.NewEntityHandler(services.Entity)
 	tagMappingHandler := handler.NewTagMappingHandler(services.TagMapping)
 	tenantHandler := handler.NewTenantHandler(services.Tenant)
 
-	apis := route.Group("/api")
+	api := router.Group("/api")
 	{
-		tagAPIs := apis.Group("/tags")
+		// Tag APIs
+		tags := api.Group("/tags")
 		{
-			tagAPIs.GET("", tagHandler.ListTags)
-			tagAPIs.POST("", tagHandler.CreateTag)
-			tagAPIs.GET("/:id", tagHandler.GetTagByID)
-			tagAPIs.PUT("/:id", tagHandler.UpdateTag)
-			tagAPIs.DELETE("/:id", tagHandler.DeleteTag)
-			tagAPIs.GET("/search", tagHandler.SearchTags)
+			tags.GET("", tagHandler.ListTags)
+			tags.POST("", tagHandler.CreateTag)
+			tags.GET("/:id", tagHandler.GetTagByID)
+			tags.PUT("/:id", tagHandler.UpdateTag)
+			tags.DELETE("/:id", tagHandler.DeleteTag)
+			tags.GET("/search", tagHandler.SearchTags)
 		}
 
-		entitiesAPIs := apis.Group("/entities")
+		// Entity APIs
+		entities := api.Group("/entities")
 		{
-			entitiesAPIs.GET("", entityHandler.ListEntities)
-			entitiesAPIs.POST("", entityHandler.CreateEntity)
-			entitiesAPIs.DELETE("/:type", entityHandler.DeleteEntity)
+			entities.GET("", entityHandler.ListEntities)
+			entities.POST("", entityHandler.CreateEntity)
+			entities.DELETE("/:type", entityHandler.DeleteEntity)
 		}
 
-		tagMappingsAPIs := apis.Group("/:entity_type/tag_mappings")
+		// Tag Mapping APIs (per entity type and ID)
+		tagMappings := api.Group("/:entity_type/tag_mappings")
 		{
-			tagMappingsAPIs.GET("/:id", tagMappingHandler.ListTagMappings)
-			tagMappingsAPIs.POST("/:id", tagMappingHandler.CreateTagMappings)
-			tagMappingsAPIs.DELETE("/:id", tagMappingHandler.DeleteTagMappings)
+			tagMappings.GET("/:id", tagMappingHandler.ListTagMappings)
+			tagMappings.POST("/:id", tagMappingHandler.CreateTagMappings)
+			tagMappings.DELETE("/:id", tagMappingHandler.DeleteTagMappings)
 		}
 
-		tenantAPIs := apis.Group("/tenants")
+		// Tenant APIs
+		tenants := api.Group("/tenants")
 		{
-			tenantAPIs.POST("", tenantHandler.CreateTenant)
-			tenantAPIs.GET("/:id", tenantHandler.GetTenantByID)
-			tenantAPIs.DELETE("/:id", tenantHandler.DeleteTenant)
+			tenants.POST("", tenantHandler.CreateTenant)
+			tenants.GET("/:id", tenantHandler.GetTenantByID)
+			tenants.DELETE("/:id", tenantHandler.DeleteTenant)
 		}
 	}
-
 }

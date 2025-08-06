@@ -1,135 +1,133 @@
+// Package handler defines HTTP handlers for managing entities, tags, tenants, and their mappings.
 package handler
 
 import (
 	"net/http"
-	"taas/service"
-	"taas/utils"
-
 	"strconv"
 	"taas/model"
+	"taas/service"
+	"taas/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+// TagHandler handles HTTP requests related to tag operations.
 type TagHandler struct {
 	tagService *service.TagService
 }
 
+// NewTagHandler creates a new instance of TagHandler.
 func NewTagHandler(service *service.TagService) *TagHandler {
 	return &TagHandler{
 		tagService: service,
 	}
 }
 
-func (h *TagHandler) ListTags(context *gin.Context) {
-	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
+// ListTags returns a paginated list of tags.
+func (h *TagHandler) ListTags(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50"))
 
-	tags, err := h.tagService.GetTagsWithPagination(context, utils.NewPagination(page, limit))
-	tagsCount, _ := h.tagService.GetTagsCount(context)
+	tags, err := h.tagService.GetTagsWithPagination(ctx, utils.NewPagination(page, limit))
+	tagsCount, _ := h.tagService.GetTagsCount(ctx)
 
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Failed to retrive tags", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to retrieve tags", err.Error())
 		return
 	}
 
-	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
-
-	utils.SuccessResponse(context, http.StatusOK, "Tags retrived successfully", tags, metaResponse)
+	meta := utils.PaginationMetaResponse(tagsCount, limit)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tags retrieved successfully", tags, meta)
 }
 
-func (h *TagHandler) CreateTag(context *gin.Context) {
-	var createTagRequest model.TagRequest
+// CreateTag handles the creation of a new tag.
+func (h *TagHandler) CreateTag(ctx *gin.Context) {
+	var req model.TagRequest
 
-	if err := context.BindJSON(&createTagRequest); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request", err.Error())
 		return
 	}
 
-	newTag, err := h.tagService.CreateTag(context, &createTagRequest)
-
+	newTag, err := h.tagService.CreateTag(ctx, &req)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to create tag", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusCreated, "Tag Created Successfully", newTag)
+	utils.SuccessResponse(ctx, http.StatusCreated, "Tag created successfully", newTag)
 }
 
-func (h *TagHandler) UpdateTag(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
-
+// UpdateTag updates an existing tag by ID.
+func (h *TagHandler) UpdateTag(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
-		return
-	}
-	var updateTagRequest model.TagRequest
-
-	if err := context.BindJSON(&updateTagRequest); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid tag ID", err.Error())
 		return
 	}
 
-	updatedTag, err := h.tagService.UpdateTag(context, uint(id), &updateTagRequest)
+	var req model.TagRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request", err.Error())
+		return
+	}
 
+	updatedTag, err := h.tagService.UpdateTag(ctx, uint(id), &req)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to update tag", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Updated Successfully", updatedTag)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tag updated successfully", updatedTag)
 }
 
-func (h *TagHandler) DeleteTag(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
-
+// DeleteTag deletes a tag by ID.
+func (h *TagHandler) DeleteTag(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid tag ID", err.Error())
 		return
 	}
 
-	err = h.tagService.DeleteTag(context, uint(id))
-
-	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Tag can't be deleted", err.Error())
+	if err := h.tagService.DeleteTag(ctx, uint(id)); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Failed to delete tag", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Deleted", nil)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tag deleted successfully", nil)
 }
 
-func (h *TagHandler) GetTagByID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 10, 32)
-
+// GetTagByID retrieves a single tag by ID.
+func (h *TagHandler) GetTagByID(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Param ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid tag ID", err.Error())
 		return
 	}
 
-	tag, err := h.tagService.GetTagByID(context, uint(id))
-
+	tag, err := h.tagService.GetTagByID(ctx, uint(id))
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Tag not found", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tag)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tag retrieved successfully", tag)
 }
 
-func (h *TagHandler) SearchTags(context *gin.Context) {
-	searchTerm := context.DefaultQuery("term", "")
-	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "50"))
+// SearchTags searches tags by a term with pagination.
+func (h *TagHandler) SearchTags(ctx *gin.Context) {
+	term := ctx.DefaultQuery("term", "")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50"))
 
-	tags, err := h.tagService.SearchTags(context, searchTerm, utils.NewPagination(page, limit))
-	tagsCount, _ := h.tagService.SearchTagsCount(context, searchTerm)
+	tags, err := h.tagService.SearchTags(ctx, term, utils.NewPagination(page, limit))
+	tagsCount, _ := h.tagService.SearchTagsCount(ctx, term)
 
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusNotFound, "Tag not found", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to search tags", err.Error())
 		return
 	}
 
-	metaResponse := utils.PaginationMetaResponse(tagsCount, limit)
-
-	utils.SuccessResponse(context, http.StatusOK, "Tag Retrived", tags, metaResponse)
+	meta := utils.PaginationMetaResponse(tagsCount, limit)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tags retrieved successfully", tags, meta)
 }

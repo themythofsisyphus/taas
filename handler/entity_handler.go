@@ -1,3 +1,4 @@
+// Package handler defines HTTP handlers for managing entities, tags, tenants, and their mappings.
 package handler
 
 import (
@@ -9,52 +10,55 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// EntityHandler handles HTTP requests related to entity operations.
 type EntityHandler struct {
 	entityService *service.EntityService
 }
 
+// NewEntityHandler creates a new instance of EntityHandler.
 func NewEntityHandler(service *service.EntityService) *EntityHandler {
 	return &EntityHandler{
 		entityService: service,
 	}
 }
 
-func (h *EntityHandler) CreateEntity(context *gin.Context) {
-	var createEntityRequest model.EntityRequest
+// CreateEntity handles the creation of a new entity.
+func (h *EntityHandler) CreateEntity(ctx *gin.Context) {
+	var req model.EntityRequest
 
-	if err := context.BindJSON(&createEntityRequest); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request payload", err.Error())
 		return
 	}
 
-	newEntity, err := h.entityService.CreateEntity(context, &createEntityRequest)
+	newEntity, err := h.entityService.CreateEntity(ctx, &req)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Entity can't be created", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create entity", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusCreated, "Entity Created Successfully", newEntity)
+	utils.SuccessResponse(ctx, http.StatusCreated, "Entity created successfully", newEntity)
 }
 
-func (h *EntityHandler) DeleteEntity(context *gin.Context) {
-	entityType := context.Param("type")
+// DeleteEntity handles deletion of an entity by its type.
+func (h *EntityHandler) DeleteEntity(ctx *gin.Context) {
+	entityType := ctx.Param("type")
 
-	if err := h.entityService.DeleteEntity(context, entityType); err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Entity can't be deleted", err.Error())
+	if err := h.entityService.DeleteEntity(ctx, entityType); err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete entity", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusNoContent, "Entity is deleted", nil)
+	utils.SuccessResponse(ctx, http.StatusNoContent, "Entity deleted successfully", nil)
 }
 
-func (h *EntityHandler) ListEntities(context *gin.Context) {
-
-	entities, err := h.entityService.GetAllEntities(context)
-
+// ListEntities returns all registered entities.
+func (h *EntityHandler) ListEntities(ctx *gin.Context) {
+	entities, err := h.entityService.GetAllEntities(ctx)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusInternalServerError, "Can't retrive entities", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to retrieve entities", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tag retrived", entities)
+	utils.SuccessResponse(ctx, http.StatusOK, "Entities retrieved successfully", entities)
 }

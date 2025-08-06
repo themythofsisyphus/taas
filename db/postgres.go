@@ -1,3 +1,4 @@
+// Package db provides DB drivers, configurations, and initialization logic.
 package db
 
 import (
@@ -7,7 +8,6 @@ import (
 	"os"
 	"taas/config"
 
-	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,46 +15,53 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func InitDB(config *config.DatabaseConfig) *gorm.DB {
+// InitDB initializes the PostgreSQL database connection using GORM and runs goose migrations.
+func InitDB(cfg *config.DatabaseConfig) *gorm.DB {
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
+		cfg.Host, cfg.UserName, cfg.Password, cfg.Name, cfg.Port, cfg.SSLMode,
+	)
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
-		config.Host, config.UserName, config.Password, config.Name, config.Port, config.SSLMode)
-
-	// Raw sql.DB connection for goose
+	// Initialize raw SQL connection for goose migrations.
 	sqlDB, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal("Failed to open SQL DB:", err)
 	}
 
-	// Run Goose migrations
+	// Configure and run goose migrations.
 	goose.SetBaseFS(os.DirFS("."))
-	goose.SetDialect("postgres")
-	migrationsDir := "db/migrations"
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatalf("Failed to set goose dialect: %v", err)
+	}
 
+	migrationsDir := "db/migrations"
 	if err := goose.Up(sqlDB, migrationsDir); err != nil {
 		log.Fatalf("Goose migration failed: %v", err)
 	}
 
 	log.Println("Goose migrations completed successfully")
 
-	// Wrap into GORM
+	// Wrap sql.DB into a GORM DB instance.
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: sqlDB,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
-
 	if err != nil {
 		log.Fatal("Failed to connect to GORM DB:", err)
 	}
 
-	// Register GORM hooks or callbacks
-	registerTenantCallback(gormDB)
+	// Register GORM multi-tenant callbacks.
+	if err := registerTenantCallback(gormDB); err != nil {
+		log.Fatalf("Failed to register tenant callbacks: %v", err)
+	}
 
 	return gormDB
 }
 
-func registerTenantCallback(db *gorm.DB) {
+// registerTenantCallback adds tenant-based filtering and setting hooks to GORM.
+func registerTenantCallback(db *gorm.DB) error {
+	// Applies tenant filter (WHERE tenant_id = ?) before queries.
 	tenantFilter := func(tx *gorm.DB) {
 		ctx := tx.Statement.Context
 		tenantID, ok := ctx.Value("tenant_id").(uint)
@@ -65,20 +72,36 @@ func registerTenantCallback(db *gorm.DB) {
 		}
 	}
 
+	// Sets tenant_id field before creating records.
 	tenantSetter := func(tx *gorm.DB) {
 		ctx := tx.Statement.Context
 		tenantID, ok := ctx.Value("tenant_id").(uint)
 		if ok && tenantID != 0 && tx.Statement.Schema != nil {
 			if field := tx.Statement.Schema.LookUpField("TenantID"); field != nil {
-				_ = field.Set(tx.Statement.Context, tx.Statement.ReflectValue, tenantID)
+				_ = field.Set(ctx, tx.Statement.ReflectValue, tenantID)
 			}
 		}
 	}
 
-	db.Callback().Query().Before("gorm:query").Register("tenant_filter_query", tenantFilter)
-	db.Callback().Delete().Before("gorm:delete").Register("tenant_filter_delete", tenantFilter)
-	db.Callback().Update().Before("gorm:update").Register("tenant_filter_update", tenantFilter)
-	db.Callback().Row().Before("gorm:row").Register("tenant_filter_row", tenantFilter)
-	db.Callback().Raw().Before("gorm:raw").Register("tenant_filter_raw", tenantFilter)
-	db.Callback().Create().Before("gorm:create").Register("tenant_setter_create", tenantSetter)
+	// Register tenant filter callbacks.
+	if err := db.Callback().Query().Before("gorm:query").Register("tenant_filter_query", tenantFilter); err != nil {
+		return err
+	}
+	if err := db.Callback().Delete().Before("gorm:delete").Register("tenant_filter_delete", tenantFilter); err != nil {
+		return err
+	}
+	if err := db.Callback().Update().Before("gorm:update").Register("tenant_filter_update", tenantFilter); err != nil {
+		return err
+	}
+	if err := db.Callback().Row().Before("gorm:row").Register("tenant_filter_row", tenantFilter); err != nil {
+		return err
+	}
+	if err := db.Callback().Raw().Before("gorm:raw").Register("tenant_filter_raw", tenantFilter); err != nil {
+		return err
+	}
+	if err := db.Callback().Create().Before("gorm:create").Register("tenant_setter_create", tenantSetter); err != nil {
+		return err
+	}
+
+	return nil
 }

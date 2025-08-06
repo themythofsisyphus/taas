@@ -1,3 +1,4 @@
+// Package main is the entry point of the Tags as a Service (TaaS) application.
 package main
 
 import (

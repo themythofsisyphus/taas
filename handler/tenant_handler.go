@@ -1,3 +1,4 @@
+// Package handler defines HTTP handlers for managing entities, tags, tenants, and their mappings.
 package handler
 
 import (
@@ -10,70 +11,71 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TenantHandler handles tenant-related API operations.
 type TenantHandler struct {
 	tenantService *service.TenantService
 }
 
+// NewTenantHandler creates a new instance of TenantHandler.
 func NewTenantHandler(service *service.TenantService) *TenantHandler {
 	return &TenantHandler{tenantService: service}
 }
 
-func (h *TenantHandler) CreateTenant(context *gin.Context) {
-	var tenant model.TenantRecord
+// CreateTenant handles the creation of a new tenant.
+func (h *TenantHandler) CreateTenant(ctx *gin.Context) {
+	var tenantReq model.TenantRecord
 
-	if err := context.BindJSON(&tenant); err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+	if err := ctx.ShouldBindJSON(&tenantReq); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request body", err.Error())
 		return
 	}
 
 	newTenant := model.Tenant{
-		ID: tenant.TenantID,
+		ID: tenantReq.TenantID,
 	}
 
 	createdTenant, err := h.tenantService.CreateTenant(&newTenant)
-
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create tenant", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusCreated, "Tenant Created Successfully", createdTenant)
+	utils.SuccessResponse(ctx, http.StatusCreated, "Tenant created successfully", createdTenant)
 }
 
-func (h *TenantHandler) GetTenantByID(context *gin.Context) {
-	tenantID := context.Param("id")
+// GetTenantByID handles fetching a tenant by ID.
+func (h *TenantHandler) GetTenantByID(ctx *gin.Context) {
+	idStr := ctx.Param("id")
 
-	id, err := strconv.ParseUint(tenantID, 10, 32)
+	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Tenant ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid tenant ID", err.Error())
 		return
 	}
 
 	tenant, err := h.tenantService.GetTenantByID(uint(id))
-
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Tenant not found", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tenant retrieved successfully", tenant)
+	utils.SuccessResponse(ctx, http.StatusOK, "Tenant retrieved successfully", tenant)
 }
 
-func (h *TenantHandler) DeleteTenant(context *gin.Context) {
-	tenantID := context.Param("id")
+// DeleteTenant handles deletion of a tenant.
+func (h *TenantHandler) DeleteTenant(ctx *gin.Context) {
+	idStr := ctx.Param("id")
 
-	id, err := strconv.ParseUint(tenantID, 10, 32)
+	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Tenant ID", err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid tenant ID", err.Error())
 		return
 	}
 
-	err = h.tenantService.DeleteTenant(uint(id))
-
-	if err != nil {
-		utils.ErrorResponse(context, http.StatusBadRequest, "Invalid Request", err.Error())
+	if err := h.tenantService.DeleteTenant(uint(id)); err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete tenant", err.Error())
 		return
 	}
 
-	utils.SuccessResponse(context, http.StatusOK, "Tenant deleted successfully", nil)
+	utils.SuccessResponse(ctx, http.StatusNoContent, "Tenant deleted successfully", nil)
 }

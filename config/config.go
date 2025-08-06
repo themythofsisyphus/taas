@@ -1,3 +1,5 @@
+// Package config provides centralized configuration loading for the application,
+// including server, database, cache, logging, and authentication settings.
 package config
 
 import (
@@ -5,14 +7,16 @@ import (
 	"time"
 )
 
+// Config aggregates all configuration sections required to run the application.
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Memcache MemcacheConfig
-	Log      LogConfig
+	Server    ServerConfig
+	Database  DatabaseConfig
+	Memcache  MemcacheConfig
+	Log       LogConfig
 	JWTSecret JWTSecretConfig
 }
 
+// ServerConfig defines the configuration for the HTTP server.
 type ServerConfig struct {
 	Port         string
 	Mode         string
@@ -21,6 +25,7 @@ type ServerConfig struct {
 	IdleTimeOut  time.Duration
 }
 
+// DatabaseConfig holds configuration values for connecting to the PostgreSQL database.
 type DatabaseConfig struct {
 	Port     string
 	Host     string
@@ -30,22 +35,25 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
+// MemcacheConfig defines connection details for Memcached.
 type MemcacheConfig struct {
 	Host string
 	Port string
 }
 
+// LogConfig defines the logging format and verbosity level.
 type LogConfig struct {
 	Level  string
 	Format string
 }
 
+// JWTSecretConfig holds the secret key used for signing JWTs.
 type JWTSecretConfig struct {
 	Key string
 }
 
+// LoadConfig reads environment variables and returns a fully initialized Config instance.
 func LoadConfig() (*Config, error) {
-
 	readTimeout, _ := time.ParseDuration(getEnv("SERVER_READ_TIMEOUT", "10s"))
 	writeTimeout, _ := time.ParseDuration(getEnv("SERVER_WRITE_TIMEOUT", "10s"))
 	idleTimeout, _ := time.ParseDuration(getEnv("SERVER_IDLE_TIMEOUT", "60s"))
@@ -67,23 +75,24 @@ func LoadConfig() (*Config, error) {
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		Memcache: MemcacheConfig{
-			Host: 		getEnv("MEMCACHED_HOST", "127.0.0.1"),
-			Port:     getEnv("MEMCACHED_PORT", "11211"),
+			Host: getEnv("MEMCACHED_HOST", "127.0.0.1"),
+			Port: getEnv("MEMCACHED_PORT", "11211"),
 		},
 		Log: LogConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
 		},
-		JWTSecret: JWTSecretConfig {
+		JWTSecret: JWTSecretConfig{
 			Key: getEnv("JWT_SECRET", "wN3vP8qjR9tL5kZxT2sA7yH0uE6fV4dG"),
 		},
 	}, nil
 }
 
+// getEnv returns the value of the environment variable `key`,
+// or the provided `defaultValue` if the variable is not set.
 func getEnv(key string, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
-
 	return defaultValue
 }
