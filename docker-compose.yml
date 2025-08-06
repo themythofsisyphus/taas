@@ -13,6 +13,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  memcached:
+    image: memcached:1.6-alpine
+    container_name: memcached
+    ports:
+      - "11211:11211"
+
   app:
     build: .
     container_name: tags-service
@@ -22,10 +28,13 @@ services:
       DB_USER: taasuser
       DB_PASSWORD: taasuser
       DB_NAME: taas
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+      - memcached
 
 volumes:
   pgdata:
