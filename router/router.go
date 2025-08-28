@@ -51,5 +51,15 @@ func RegisterRoutes(router *gin.Engine, services *service.Services) {
 			tenants.GET("/:id", tenantHandler.GetTenantByID)
 			tenants.DELETE("/:id", tenantHandler.DeleteTenant)
 		}
+
+		// Analytics APIs
+		analytics := api.Group("/analytics")
+		{
+			analyticsHandler := handler.NewAnalyticsHandler()
+			analytics.GET("/stats", analyticsHandler.GetStats)
+			analytics.GET("/endpoints", analyticsHandler.GetEndpointMetrics)
+			analytics.GET("/activity", analyticsHandler.GetRecentActivity)
+			analytics.GET("/traffic", analyticsHandler.GetTrafficData)
+		}
 	}
 }

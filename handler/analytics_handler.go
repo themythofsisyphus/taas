@@ -142,11 +142,11 @@ func (h *AnalyticsHandler) GetTrafficData(c *gin.Context) {
 	// Generate 24 hours of traffic data
 	var trafficData []TrafficData
 	now := time.Now()
-	
+
 	for i := 23; i >= 0; i-- {
 		timestamp := now.Add(-time.Duration(i) * time.Hour)
 		requests := 100 + (i*10)%400 // Mock varying traffic
-		
+
 		trafficData = append(trafficData, TrafficData{
 			Timestamp: timestamp,
 			Requests:  requests,
@@ -158,16 +158,3 @@ func (h *AnalyticsHandler) GetTrafficData(c *gin.Context) {
 		"data":    trafficData,
 	})
 }
-
-// Add these routes to your router.go file:
-/*
-// Analytics routes
-analytics := api.Group("/analytics")
-{
-    analyticsHandler := handler.NewAnalyticsHandler()
-    analytics.GET("/stats", analyticsHandler.GetStats)
-    analytics.GET("/endpoints", analyticsHandler.GetEndpointMetrics)
-    analytics.GET("/activity", analyticsHandler.GetRecentActivity)
-    analytics.GET("/traffic", analyticsHandler.GetTrafficData)
-}
-*/
