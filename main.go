@@ -2,11 +2,11 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"taas/config"
 	"taas/db"
 	"taas/middleware"
+	"taas/pkg/tlog"
 	"taas/repository"
 	"taas/router"
 	"taas/service"
@@ -21,7 +21,7 @@ func main() {
 	// config
 	configs, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal("Configs couldn't loaded")
+		tlog.Fatal("Configs couldn't loaded: %v", err)
 	}
 
 	db := db.InitDB(&configs.Database)
@@ -35,6 +35,7 @@ func main() {
 	r.Use(middleware.Logger())
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	// r.Use(tlog.TlogMiddleware())  // lets use our own logger for gin - commented out for now
 
 	router.RegisterRoutes(r, services)
 
@@ -47,8 +48,8 @@ func main() {
 		IdleTimeout:  configs.Server.IdleTimeOut,
 	}
 
-	log.Printf("Server starting on port %s", configs.Server.Port)
+	tlog.Info("Server starting on port %s", configs.Server.Port)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("Server failed to start:", err)
+		tlog.Fatal("Server failed to start: %v", err)
 	}
 }
