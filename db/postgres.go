@@ -4,9 +4,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"taas/config"
+	"taas/pkg/tlog"
 
 	_ "github.com/lib/pq" // pg driver
 	"github.com/pressly/goose/v3"
@@ -26,21 +26,21 @@ func InitDB(cfg *config.DatabaseConfig) *gorm.DB {
 	// Initialize raw SQL connection for goose migrations.
 	sqlDB, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Failed to open SQL DB:", err)
+		tlog.Fatal("Failed to open SQL DB: %v", err)
 	}
 
 	// Configure and run goose migrations.
 	goose.SetBaseFS(os.DirFS("."))
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatalf("Failed to set goose dialect: %v", err)
+		tlog.Fatal("Failed to set goose dialect: %v", err)
 	}
 
 	migrationsDir := "db/migrations"
 	if err := goose.Up(sqlDB, migrationsDir); err != nil {
-		log.Fatalf("Goose migration failed: %v", err)
+		tlog.Fatal("Goose migration failed: %v", err)
 	}
 
-	log.Println("Goose migrations completed successfully")
+	tlog.Info("Goose migrations completed successfully")
 
 	// Wrap sql.DB into a GORM DB instance.
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
@@ -49,12 +49,12 @@ func InitDB(cfg *config.DatabaseConfig) *gorm.DB {
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		log.Fatal("Failed to connect to GORM DB:", err)
+		tlog.Fatal("Failed to connect to GORM DB: %v", err)
 	}
 
 	// Register GORM multi-tenant callbacks.
 	if err := registerTenantCallback(gormDB); err != nil {
-		log.Fatalf("Failed to register tenant callbacks: %v", err)
+		tlog.Fatal("Failed to register tenant callbacks: %v", err)
 	}
 
 	return gormDB

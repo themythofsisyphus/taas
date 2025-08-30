@@ -4,9 +4,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"taas/model"
+	"taas/pkg/tlog"
 	"taas/repository"
 	"taas/utils"
 )
@@ -29,7 +29,7 @@ func NewEntityService(repo *repository.EntityRepo, cache *utils.Cache) *EntitySe
 func (s *EntityService) GetAllEntities(ctx context.Context) ([]model.EntityResponse, error) {
 	entities, err := s.entityRepo.GetAll(ctx)
 	if err != nil {
-		log.Printf("[EntityService] Error retrieving entities: %v", err)
+		tlog.Error("[EntityService] Error retrieving entities: %v", err)
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (s *EntityService) CreateEntity(ctx context.Context, req *model.EntityReque
 
 	created, err := s.entityRepo.Create(ctx, newEntity)
 	if err != nil {
-		log.Printf("[EntityService] Error creating entity: %v", err)
+		tlog.Error("[EntityService] Error creating entity: %v", err)
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func (s *EntityService) CreateEntity(ctx context.Context, req *model.EntityReque
 
 	entityKey := utils.EntityCacheKey(created.Name, tenantID)
 	if err := s.cacheClient.Set(entityKey, strconv.Itoa(created.ID)); err != nil {
-		log.Printf("[EntityService] Cache save failed for key %s", entityKey)
+		tlog.Error("[EntityService] Cache save failed for key %s: %v", entityKey, err)
 	}
 
 	return s.buildEntityResponse(created), nil
@@ -77,7 +77,7 @@ func (s *EntityService) DeleteEntity(ctx context.Context, eType string) error {
 
 	entityKey := utils.EntityCacheKey(eType, tenantID)
 	if err := s.cacheClient.Remove(entityKey); err != nil {
-		log.Printf("[EntityService] Cache remove failed for key %s", entityKey)
+		tlog.Error("[EntityService] Cache remove failed for key %s", entityKey)
 	}
 
 	return nil
@@ -93,7 +93,7 @@ func (s *EntityService) GetEntityByName(ctx context.Context, name string) (*mode
 	entityKey := utils.EntityCacheKey(name, tenantID)
 	entityID, err := s.cacheClient.Get(entityKey)
 	if err == nil {
-		log.Printf("[EntityService] Cache hit for key %s", entityKey)
+		tlog.Info("[EntityService] Cache hit for key %s", entityKey)
 		idInt, _ := strconv.Atoi(entityID)
 		return &model.EntityResponse{
 			ID:   idInt,
@@ -101,11 +101,11 @@ func (s *EntityService) GetEntityByName(ctx context.Context, name string) (*mode
 		}, nil
 	}
 
-	log.Printf("[EntityService] Cache miss for key %s", entityKey)
+	tlog.Info("[EntityService] Cache miss for key %s", entityKey)
 
 	entity, err := s.entityRepo.GetByName(ctx, name)
 	if err != nil {
-		log.Printf("[EntityService] Error retrieving entity by name: %v", err)
+		tlog.Error("[EntityService] Error retrieving entity by name: %v", err)
 		return nil, err
 	}
 	return s.buildEntityResponse(entity), nil
