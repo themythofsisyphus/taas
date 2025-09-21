@@ -2,9 +2,9 @@
 package utils
 
 import (
-	"log"
 	"strconv"
 	"taas/config"
+	"taas/pkg/tlog"
 
 	"github.com/bradfitz/gomemcache/memcache"
 )
@@ -25,7 +25,7 @@ func NewCacheClient(cfg *config.MemcacheConfig) *Cache {
 func (c *Cache) Set(key, value string) error {
 	err := c.Client.Set(&memcache.Item{Key: key, Value: []byte(value)})
 	if err != nil {
-		log.Printf("[Memcache][Set] Error setting key %s: %v", key, err)
+		tlog.Error("[Memcache][Set] Error setting key %s: %v", key, err)
 		return err
 	}
 	return nil
@@ -35,7 +35,7 @@ func (c *Cache) Set(key, value string) error {
 func (c *Cache) Get(key string) (string, error) {
 	item, err := c.Client.Get(key)
 	if err != nil {
-		log.Printf("[Memcache][Get] Error retrieving key %s: %v", key, err)
+		tlog.Error("[Memcache][Get] Error retrieving key %s: %v", key, err)
 		return "", err
 	}
 	return string(item.Value), nil
@@ -45,7 +45,7 @@ func (c *Cache) Get(key string) (string, error) {
 func (c *Cache) Remove(key string) error {
 	err := c.Client.Delete(key)
 	if err != nil {
-		log.Printf("[Memcache][Remove] Error deleting key %s: %v", key, err)
+		tlog.Error("[Memcache][Remove] Error deleting key %s: %v", key, err)
 		return err
 	}
 	return nil

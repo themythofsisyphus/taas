@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"log"
 	"taas/model"
+	"taas/pkg/tlog"
 	"taas/repository"
 	"taas/utils"
 )
@@ -28,7 +28,7 @@ func NewTagMappingService(repo *repository.TagMappingRepo, entityService *Entity
 func (s *TagMappingService) getEntityID(ctx context.Context, entityType string) (int, error) {
 	entity, err := s.entityService.GetEntityByName(ctx, entityType)
 	if err != nil {
-		log.Println("[Error][TagMappingService.getEntityID] Failed to get entity:", err)
+		tlog.Error("[TagMappingService.getEntityID] Failed to get entity: %v", err)
 		return 0, err
 	}
 	return entity.ID, nil
@@ -53,7 +53,7 @@ func (s *TagMappingService) CreateTagMappings(ctx context.Context,
 	}
 
 	if err := s.repo.CreateTagMappings(ctx, tagMappings); err != nil {
-		log.Println("[Error][TagMappingService.CreateTagMappings] Failed to create:", err)
+		tlog.Error("[TagMappingService.CreateTagMappings] Failed to create: %v", err)
 		return nil, err
 	}
 
@@ -79,7 +79,7 @@ func (s *TagMappingService) GetTagMappings(ctx context.Context, entityType strin
 
 	tagMappings, err := s.repo.GetTagMappings(ctx, entityTypeID, entityID)
 	if err != nil {
-		log.Println("[Error][TagMappingService.GetTagMappings] Failed to get:", err)
+		tlog.Error("[TagMappingService.GetTagMappings] Failed to get: %v", err)
 		return nil, err
 	}
 
@@ -102,7 +102,7 @@ func (s *TagMappingService) GetTagMappingsWithPagination(ctx context.Context,
 
 	tagMappings, err := s.repo.GetWithPagination(ctx, entityTypeID, entityID, pagination)
 	if err != nil {
-		log.Println("[Error][TagMappingService.GetTagMappingsWithPagination] Failed to get:", err)
+		tlog.Error("[TagMappingService.GetTagMappingsWithPagination] Failed to get: %v", err)
 		return nil, err
 	}
 
@@ -123,7 +123,7 @@ func (s *TagMappingService) GetTagMappingsCount(ctx context.Context, entityType 
 
 	count, err := s.repo.GetCount(ctx, entityTypeID, entityID)
 	if err != nil {
-		log.Println("[Error][TagMappingService.GetTagMappingsCount] Failed to get count:", err)
+		tlog.Error("[TagMappingService.GetTagMappingsCount] Failed to get count: %v", err)
 		return 0, err
 	}
 

@@ -3,8 +3,8 @@
 package config
 
 import (
-	"log"
 	"os"
+	"taas/pkg/tlog"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -60,7 +60,8 @@ func LoadConfig() (*Config, error) {
 
 	err := godotenv.Load() // loads .env from the root
 	if err != nil {
-		log.Println("Warning: .env file not found or failed to load")
+		tlog.Warn(".env file not found or failed to load")
+		return nil, err
 	}
 
 	readTimeout, _ := time.ParseDuration(getEnv("SERVER_READ_TIMEOUT", "10s"))
